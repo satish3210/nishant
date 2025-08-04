@@ -24,11 +24,12 @@ stages:
 
 - stage: terraformplan
   displayName: terraform plan
+  dependsOn: terraforminit
   pool: testingpool
   jobs:
     - job: terraformplan
       displayName: terraformplan
-      dependsOn: terraforminit
+      
       steps:
       - task: TerraformTask@5
         inputs:
@@ -47,11 +48,12 @@ stages:
 
 - stage: terraformapply
   displayName: terraform apply
+  dependsOn: terraformplan
   pool: testingpool
   jobs:
     - job: terraformapply
       displayName: terraformapply
-      dependsOn: terraformplan
+      
       steps:
       - task: TerraformTask@5
         inputs:
