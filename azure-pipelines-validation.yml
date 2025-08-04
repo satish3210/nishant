@@ -6,8 +6,6 @@ pool: testingpool
 stages:
 - stage: terraformInit
   displayName: terraform init
-  pool: testingpool
-
   jobs:
   - job: terraforminit
     displayName: terraforminit
@@ -23,27 +21,25 @@ stages:
 
 - stage: terraformplan
   displayName: terraform plan
-  dependsOn: terraforminit
-  pool: testingpool
+  dependsOn: terraformInit
   jobs:
-    - job: terraformplan
-      displayName: terraformplan
-      
-      steps:
-      - task: TerraformTask@5
-        inputs:
-          provider: 'azurerm'
-          command: 'init'
-          backendServiceArm: 'azure connection'
-          backendAzureRmStorageAccountName: 'storage552'
-          backendAzureRmContainerName: 'cont1'
-          backendAzureRmKey: 'terraform.tfstate'
+  - job: terraformplan
+    displayName: terraformplan
+    steps:
+    - task: TerraformTask@5
+      inputs:
+        provider: 'azurerm'
+        command: 'init'
+        backendServiceArm: 'azure connection'
+        backendAzureRmStorageAccountName: 'storage552'
+        backendAzureRmContainerName: 'cont1'
+        backendAzureRmKey: 'terraform.tfstate'
 
-      - task: TerraformTask@5
-        inputs:
-          provider: 'azurerm'
-          command: 'plan'
-          environmentServiceNameAzureRM: 'azure connection'
+    - task: TerraformTask@5
+      inputs:
+        provider: 'azurerm'
+        command: 'plan'
+        environmentServiceNameAzureRM: 'azure connection'
 
 - stage: terraformapply
   displayName: terraform apply
@@ -56,26 +52,25 @@ stages:
     steps:
     - task: ManualValidation@1
       inputs:
-        notifyUsers: 'ab@.com'
-        instructions: 'please validate terraform plan'
-  
-  jobs:
-    - job: terraformapply
-      displayName: terraformapply
-      
-      steps:
-      - task: TerraformTask@5
-        inputs:
-          provider: 'azurerm'
-          command: 'init'
-          backendServiceArm: 'azure connection'
-          backendAzureRmStorageAccountName: 'storage552'
-          backendAzureRmContainerName: 'cont1'
-          backendAzureRmKey: 'terraform.tfstate'
+        notifyUsers: 'ab@.com'     # ✅ yahan apna actual email daalna
+        instructions: 'Please validate the Terraform plan before applying.'
 
-      - task: TerraformTask@5
-        inputs:
-          provider: 'azurerm'
-          command: 'apply'
-          commandOptions: '--auto-approve'
-          environmentServiceNameAzureRM: 'azure connection'
+  - job: terraformapply
+    displayName: terraformapply
+    dependsOn: waitForValidation   # ✅ pehle manual validation complete hona chahiye
+    steps:
+    - task: TerraformTask@5
+      inputs:
+        provider: 'azurerm'
+        command: 'init'
+        backendServiceArm: 'azure connection'
+        backendAzureRmStorageAccountName: 'storage552'
+        backendAzureRmContainerName: 'cont1'
+        backendAzureRmKey: 'terraform.tfstate'
+
+    - task: TerraformTask@5
+      inputs:
+        provider: 'azurerm'
+        command: 'apply'
+        commandOptions: '--auto-approve'
+        environmentServiceNameAzureRM: 'azure connection'
